@@ -12,6 +12,7 @@ client = genai.Client(
     api_key = os.getenv("GEMINI_API_KEY")
 )
 
+history = []
 
 while True:
 
@@ -20,16 +21,33 @@ while True:
     if user_msg.lower().strip() == 'exit':
         break
 
+    # append message history
+    history.append(
+        {
+            "role": "user",
+            "parts": [{"text": user_msg}]
+        }
+    )
+
     start = time.time()
     try: 
         response = client.models.generate_content(
             model="gemini-flash-latest",
-            contents=user_msg
+            contents=history
         )
     except ServerError:
         print("AI: Model server is busy. Please try again in few movements.")
+        continue
         
     end = time.time()
+
+    # append response
+    history.append(
+        {
+            "role": "model",
+            "parts": [{"text": response.text}]
+        }
+    )
 
     print("Time: ", round(end - start, 2), "seconds")
     print("AI: " + response.text)
